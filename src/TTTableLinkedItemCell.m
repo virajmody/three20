@@ -68,13 +68,14 @@
     if (item.URL) {
       TTNavigationMode navigationMode = [[TTNavigator navigator].URLMap
                                          navigationModeForURL:item.URL];
-      if (item.accessoryURL) {
-        self.accessoryType = UITableViewCellAccessoryDetailDisclosureButton;
-
-      } else if (navigationMode == TTNavigationModeCreate ||
-                 navigationMode == TTNavigationModeShare) {
-        self.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-
+      if (item.accessoryURL) { 
+        if (navigationMode == TTNavigationModeCreate || 
+            navigationMode == TTNavigationModeShare) { 
+            self.accessoryType = UITableViewCellAccessoryDisclosureIndicator; 
+          } 
+        else { 
+          self.accessoryType = UITableViewCellAccessoryDetailDisclosureButton;   
+        }
       } else {
         self.accessoryType = UITableViewCellAccessoryNone;
       }
