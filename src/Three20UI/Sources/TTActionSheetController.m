@@ -42,6 +42,7 @@
 
     if (title) {
       self.actionSheet.title = title;
+      self.actionSheet.actionSheetStyle = UIActionSheetStyleBlackOpaque;
     }
   }
   return self;
@@ -113,7 +114,16 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)showInView:(UIView*)view animated:(BOOL)animated {
   [self viewWillAppear:animated];
-  [self.actionSheet showInView:view.window];
+#ifdef UI_USER_INTERFACE_IDIOM
+  if( UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad ) {
+    [self.actionSheet showInView:view];
+  }
+  else {
+    [self.actionSheet showInView:view.window];
+  }
+#else 
+    [self.actionSheet showInView:view.window];
+#endif
   [self viewDidAppear:animated];
 }
 
