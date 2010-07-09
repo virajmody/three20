@@ -50,20 +50,21 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 + (id)itemWithTitle:(NSString*)title caption:(NSString*)caption text:(NSString*)text
-          timestamp:(NSDate*)timestamp URL:(NSString*)URL {
+          timestamp:(NSDate*)timestamp URL:(NSString*)URL accessoryURL:(NSString*)accessoryURL {
   TTTableMessageItem* item = [[[self alloc] init] autorelease];
   item.title = title;
   item.caption = caption;
   item.text = text;
   item.timestamp = timestamp;
   item.URL = URL;
+  item.accessoryURL = accessoryURL;
   return item;
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 + (id)itemWithTitle:(NSString*)title caption:(NSString*)caption text:(NSString*)text
-          timestamp:(NSDate*)timestamp imageURL:(NSString*)imageURL URL:(NSString*)URL {
+          timestamp:(NSDate*)timestamp imageURL:(NSString*)imageURL URL:(NSString*)URL accessoryURL:(NSString*)accessoryURL{
   TTTableMessageItem* item = [[[self alloc] init] autorelease];
   item.title = title;
   item.caption = caption;
@@ -71,6 +72,7 @@
   item.timestamp = timestamp;
   item.imageURL = imageURL;
   item.URL = URL;
+  item.accessoryURL = accessoryURL;
   return item;
 }
 

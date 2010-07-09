@@ -43,6 +43,8 @@
 // Core
 #import "Three20Core/TTCorePreprocessorMacros.h"
 
+#import "Three20UINavigator/TTURLAction.h"
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +120,12 @@
   if ([object isKindOfClass:[TTTableLinkedItem class]]) {
     TTTableLinkedItem* item = object;
     if (item.URL && [_controller shouldOpenURL:item.URL]) {
-      TTOpenURL(item.URL);
+      if(item.userInfo && [item.userInfo isKindOfClass:[NSDictionary class]]){
+        [[TTNavigator navigator] openURLAction:[[[TTURLAction actionWithURLPath:item.URL] applyQuery:item.userInfo] applyAnimated:YES]];
+      }
+      else {
+        TTOpenURL(item.URL);
+      }
     }
 
     if ([object isKindOfClass:[TTTableButton class]]) {

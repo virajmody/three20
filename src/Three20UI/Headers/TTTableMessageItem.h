@@ -30,8 +30,8 @@
 @property (nonatomic, copy)   NSString* imageURL;
 
 + (id)itemWithTitle:(NSString*)title caption:(NSString*)caption text:(NSString*)text
-          timestamp:(NSDate*)timestamp URL:(NSString*)URL;
+          timestamp:(NSDate*)timestamp URL:(NSString*)URL accessoryURL:(NSString*)accessoryURL;
 + (id)itemWithTitle:(NSString*)title caption:(NSString*)caption text:(NSString*)text
-          timestamp:(NSDate*)timestamp imageURL:(NSString*)imageURL URL:(NSString*)URL;
+          timestamp:(NSDate*)timestamp imageURL:(NSString*)imageURL URL:(NSString*)URL accessoryURL:(NSString*)accessoryURL;
 
 @end

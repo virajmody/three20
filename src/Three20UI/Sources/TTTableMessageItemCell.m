@@ -31,8 +31,8 @@
 #import "Three20Core/NSDateAdditions.h"
 
 static const NSInteger  kMessageTextLineCount       = 2;
-static const CGFloat    kDefaultMessageImageWidth   = 34;
-static const CGFloat    kDefaultMessageImageHeight  = 34;
+static const CGFloat    kDefaultMessageImageWidth   = 80;
+static const CGFloat    kDefaultMessageImageHeight  = 80;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,7 +148,7 @@ static const CGFloat    kDefaultMessageImageHeight  = 34;
     _timestampLabel.top = _titleLabel.top;
     _titleLabel.width -= _timestampLabel.width + kTableCellSmallMargin*2;
   } else {
-    _titleLabel.frame = CGRectZero;
+    _timestampLabel.frame = CGRectZero;
   }
 }
 
