@@ -140,6 +140,9 @@
     if (item.subtitle.length) {
       self.detailTextLabel.text = item.subtitle;
     }
+    else {
+      self.detailTextLabel.text = @"";
+    }
     if (item.defaultImage) {
       self.imageView2.defaultImage = item.defaultImage;
     }

@@ -68,11 +68,11 @@
     if (item.URL) {
       TTNavigationMode navigationMode = [[TTNavigator navigator].URLMap
                                          navigationModeForURL:item.URL];
-      if (item.accessoryURL) {
+      if (item.accessoryURL && item.accessoryURL.length > 0) {
         self.accessoryType = UITableViewCellAccessoryDetailDisclosureButton;
 
-      } else if (navigationMode == TTNavigationModeCreate ||
-                 navigationMode == TTNavigationModeShare) {
+      } else if ( (navigationMode == TTNavigationModeCreate ||
+                   navigationMode == TTNavigationModeShare) && item.accessoryURL ) {
         self.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 
       } else {
