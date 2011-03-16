@@ -64,7 +64,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 + (id)itemWithTitle:(NSString*)title caption:(NSString*)caption text:(NSString*)text
-          timestamp:(NSDate*)timestamp imageURL:(NSString*)imageURL URL:(NSString*)URL accessoryURL:(NSString*)accessoryURL{
+          timestamp:(NSDate*)timestamp imageURL:(NSString*)imageURL URL:(NSString*)URL
+          accessoryURL:(NSString*)accessoryURL {
   TTTableMessageItem* item = [[[self alloc] init] autorelease];
   item.title = title;
   item.caption = caption;

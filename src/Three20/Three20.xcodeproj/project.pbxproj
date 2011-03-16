@@ -17,6 +17,12 @@
 		6EE736C811849FAB00A35176 /* libThree20Core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EE7366C11849C5800A35176 /* libThree20Core.a */; };
 		6EE738A61184ADB800A35176 /* libThree20Network.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EE738A31184ADB400A35176 /* libThree20Network.a */; };
 		6EE739D01184BB0400A35176 /* libThree20.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BEF31F3A0F352DF5000DE5D2 /* libThree20.a */; };
+		C00A6313133161590051F48D /* libThree20Core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EE7366C11849C5800A35176 /* libThree20Core.a */; };
+		C00A63141331615B0051F48D /* libThree20Network.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EE738A31184ADB400A35176 /* libThree20Network.a */; };
+		C00A63151331615D0051F48D /* libThree20Style.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E6454A71184D42800F08CB1 /* libThree20Style.a */; };
+		C00A63161331615F0051F48D /* libThree20UICommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EDAEA09118CA5B50008133C /* libThree20UICommon.a */; };
+		C00A6317133161610051F48D /* libThree20UINavigator.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EDAEA12118CA5BE0008133C /* libThree20UINavigator.a */; };
+		C00A6318133161620051F48D /* libThree20UI.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E7F9685118E353800443B46 /* libThree20UI.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -222,6 +228,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C00A6313133161590051F48D /* libThree20Core.a in Frameworks */,
+				C00A63141331615B0051F48D /* libThree20Network.a in Frameworks */,
+				C00A63151331615D0051F48D /* libThree20Style.a in Frameworks */,
+				C00A63161331615F0051F48D /* libThree20UICommon.a in Frameworks */,
+				C00A6317133161610051F48D /* libThree20UINavigator.a in Frameworks */,
+				C00A6318133161620051F48D /* libThree20UI.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

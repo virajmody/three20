@@ -45,7 +45,11 @@
 #define TTLOGLEVEL_ERROR    1
 
 #ifndef TTMAXLOGLEVEL
-  #define TTMAXLOGLEVEL TTLOGLEVEL_WARNING
+  #ifdef DEBUG
+    #define TTMAXLOGLEVEL TTLOGLEVEL_INFO
+  #else
+    #define TTMAXLOGLEVEL TTLOGLEVEL_WARNING
+  #endif
 #endif
 
 // The general purpose logger. This ignores logging levels.

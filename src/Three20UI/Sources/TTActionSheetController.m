@@ -125,13 +125,13 @@
 - (void)showInView:(UIView*)view animated:(BOOL)animated {
   [self viewWillAppear:animated];
 #ifdef UI_USER_INTERFACE_IDIOM
-  if( UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad ) {
+  if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
     [self.actionSheet showInView:view];
   }
   else {
     [self.actionSheet showInView:view.window];
   }
-#else 
+#else
     [self.actionSheet showInView:view.window];
 #endif
   [self viewDidAppear:animated];

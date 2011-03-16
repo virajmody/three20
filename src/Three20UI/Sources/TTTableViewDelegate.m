@@ -128,13 +128,16 @@
   if ([object isKindOfClass:[TTTableLinkedItem class]]) {
     TTTableLinkedItem* item = object;
     if (item.URL && [_controller shouldOpenURL:item.URL]) {
-      if(item.userInfo && [item.userInfo isKindOfClass:[NSDictionary class]]){
-        [[TTNavigator navigator] openURLAction:[[[TTURLAction actionWithURLPath:item.URL] applyQuery:item.userInfo] applyAnimated:YES]];
+      if (item.userInfo && [item.userInfo isKindOfClass:[NSDictionary class]]) {
+        [[TTNavigator navigator]
+          openURLAction:[[[TTURLAction actionWithURLPath:item.URL] applyQuery:item.userInfo]
+          applyAnimated:YES]];
       }
       else {
         TTOpenURLFromView(item.URL, tableView);
         TTOpenURL(item.URL);
       }
+
     } else if (item.delegate && item.selector) {
       [item.delegate performSelector:item.selector withObject:object];
     }
