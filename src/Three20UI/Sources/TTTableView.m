@@ -155,8 +155,9 @@ static const CGFloat kCancelHighlightThreshold = 4;
   }
 }
 
-
+// Viraj -- this makes moving around rows not scroll and eventually crash
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 - (void)setContentOffset:(CGPoint)point {
   // UITableView (and UIScrollView) are really stupid about resetting the content offset
   // when the table view itself is resized.  There are times when I scroll to a point and then
@@ -168,7 +169,7 @@ static const CGFloat kCancelHighlightThreshold = 4;
     }
   }
 }
-
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////

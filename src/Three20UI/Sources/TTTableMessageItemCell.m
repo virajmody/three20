@@ -49,7 +49,7 @@ static const CGFloat    kDefaultMessageImageHeight  = 80;
     self.textLabel.highlightedTextColor = TTSTYLEVAR(highlightedTextColor);
     self.textLabel.textAlignment = UITextAlignmentLeft;
     self.textLabel.lineBreakMode = UILineBreakModeTailTruncation;
-    self.textLabel.adjustsFontSizeToFitWidth = YES;
+    self.textLabel.adjustsFontSizeToFitWidth = NO;
     self.textLabel.contentMode = UIViewContentModeLeft;
 
     self.detailTextLabel.font = TTSTYLEVAR(font);
@@ -118,7 +118,7 @@ static const CGFloat    kDefaultMessageImageHeight  = 80;
     left = kTableCellMargin;
   }
 
-  CGFloat width = self.contentView.width - left;
+  CGFloat width = self.contentView.width - left + 10;
   CGFloat top = kTableCellSmallMargin;
 
   if (_titleLabel.text.length) {
