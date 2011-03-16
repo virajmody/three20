@@ -1,5 +1,5 @@
 //
-// Copyright 2009-2010 Facebook
+// Copyright 2009-2011 Facebook
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,12 +27,16 @@
 
 @synthesize URL           = _URL;
 @synthesize accessoryURL  = _accessoryURL;
+@synthesize delegate      = _delegate;
+@synthesize selector      = _selector;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)dealloc {
   TT_RELEASE_SAFELY(_URL);
   TT_RELEASE_SAFELY(_accessoryURL);
+  _delegate = nil;
+  _selector = nil;
 
   [super dealloc];
 }
@@ -48,6 +52,7 @@
 - (id)initWithCoder:(NSCoder*)decoder {
   if (self = [super initWithCoder:decoder]) {
     self.URL = [decoder decodeObjectForKey:@"URL"];
+    self.accessoryURL = [decoder decodeObjectForKey:@"accessoryURL"];
   }
   return self;
 }
@@ -60,7 +65,7 @@
     [encoder encodeObject:self.URL forKey:@"URL"];
   }
   if (self.accessoryURL) {
-    [encoder encodeObject:self.accessoryURL forKey:@"URL"];
+    [encoder encodeObject:self.accessoryURL forKey:@"accessoryURL"];
   }
 }
 

@@ -1,5 +1,5 @@
 //
-// Copyright 2009-2010 Facebook
+// Copyright 2009-2011 Facebook
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 // UINavigator
 #import "Three20UINavigator/TTGlobalNavigatorMetrics.h"
 #import "Three20UINavigator/TTNavigatorDelegate.h"
+#import "Three20UINavigator/TTNavigatorRootContainer.h"
 #import "Three20UINavigator/TTBaseNavigationController.h"
 #import "Three20UINavigator/TTURLAction.h"
 #import "Three20UINavigator/TTURLMap.h"
@@ -29,6 +30,7 @@
 #import "Three20UINavigator/private/TTBaseNavigatorInternal.h"
 
 // UICommon
+#import "Three20UICommon/UIView+TTUICommon.h"
 #import "Three20UICommon/UIViewControllerAdditions.h"
 
 // Core
@@ -44,6 +46,13 @@ static NSString* kNavigatorHistoryKey           = @"TTNavigatorHistory";
 static NSString* kNavigatorHistoryTimeKey       = @"TTNavigatorHistoryTime";
 static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant";
 
+#ifdef __IPHONE_4_0
+UIKIT_EXTERN NSString *const UIApplicationDidEnterBackgroundNotification
+__attribute__((weak_import));
+UIKIT_EXTERN NSString *const UIApplicationWillEnterForegroundNotification
+__attribute__((weak_import));
+#endif
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,10 +63,12 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
 @synthesize URLMap                    = _URLMap;
 @synthesize window                    = _window;
 @synthesize rootViewController        = _rootViewController;
+@synthesize persistenceKey            = _persistenceKey;
 @synthesize persistenceExpirationAge  = _persistenceExpirationAge;
 @synthesize persistenceMode           = _persistenceMode;
 @synthesize supportsShakeToReload     = _supportsShakeToReload;
 @synthesize opensExternalURLs         = _opensExternalURLs;
+@synthesize rootContainer             = _rootContainer;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,10 +77,19 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
     _URLMap = [[TTURLMap alloc] init];
     _persistenceMode = TTNavigatorPersistenceModeNone;
 
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(applicationWillTerminateNotification:)
-                                                 name:UIApplicationWillTerminateNotification
-                                               object:nil];
+    NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
+    [center addObserver:self
+               selector:@selector(applicationWillLeaveForeground:)
+                   name:UIApplicationWillTerminateNotification
+                 object:nil];
+#ifdef __IPHONE_4_0
+    if (nil != &UIApplicationDidEnterBackgroundNotification) {
+      [center addObserver:self
+                 selector:@selector(applicationWillLeaveForeground:)
+                     name:UIApplicationDidEnterBackgroundNotification
+                   object:nil];
+    }
+#endif
   }
   return self;
 }
@@ -77,14 +97,14 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                  name:UIApplicationWillTerminateNotification
-                                                object:nil];
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
   _delegate = nil;
   TT_RELEASE_SAFELY(_window);
   TT_RELEASE_SAFELY(_rootViewController);
+  TT_RELEASE_SAFELY(_popoverController);
   TT_RELEASE_SAFELY(_delayedControllers);
   TT_RELEASE_SAFELY(_URLMap);
+  TT_RELEASE_SAFELY(_persistenceKey);
 
   [super dealloc];
 }
@@ -102,6 +122,38 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
     [gNavigator release];
     gNavigator = [navigator retain];
   }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
++ (TTBaseNavigator*)navigatorForView:(UIView*)view {
+  // If this is called with a UIBarButtonItem, we can't traverse a view hierarchy to find the
+  // navigator, return the global navigator as a fallback.
+  if (![view isKindOfClass:[UIView class]]) {
+    return [TTBaseNavigator globalNavigator];
+  }
+
+  id<TTNavigatorRootContainer>  container = nil;
+  UIViewController*             controller = nil;      // The iterator.
+  UIViewController*             childController = nil; // The last iterated controller.
+
+  for (controller = view.viewController;
+       nil != controller;
+       controller = controller.parentViewController) {
+    if ([controller conformsToProtocol:@protocol(TTNavigatorRootContainer)]) {
+      container = (id<TTNavigatorRootContainer>)controller;
+      break;
+    }
+
+    childController = controller;
+  }
+
+  TTBaseNavigator* navigator = [container getNavigatorForController:childController];
+  if (nil == navigator) {
+    navigator = [TTBaseNavigator globalNavigator];
+  }
+
+  return navigator;
 }
 
 
@@ -191,7 +243,13 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
   if (controller != _rootViewController) {
     [_rootViewController release];
     _rootViewController = [controller retain];
-    [self.window addSubview:_rootViewController.view];
+
+    if (nil != _rootContainer) {
+      [_rootContainer navigator:self setRootViewController:_rootViewController];
+
+    } else {
+      [self.window addSubview:_rootViewController.view];
+    }
   }
 }
 
@@ -256,11 +314,45 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
                                         animated: animated];
 
   } else {
-    UINavigationController* navController = [[[[self navigationControllerClass] alloc] init] autorelease];
+    UINavigationController* navController = [[[[self navigationControllerClass] alloc] init]
+                                             autorelease];
     [navController pushViewController: controller
                              animated: NO];
     [parentController presentModalViewController: navController
                                         animated: animated];
+  }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+- (void)presentPopoverController: (UIViewController*)controller
+                    sourceButton: (UIBarButtonItem*)sourceButton
+                      sourceView: (UIView*)sourceView
+                      sourceRect: (CGRect)sourceRect
+                        animated: (BOOL)animated {
+  TTDASSERT(nil != sourceButton || nil != sourceView);
+
+  if (nil == sourceButton && nil == sourceView) {
+    return;
+  }
+
+  if (nil != _popoverController) {
+    [_popoverController dismissPopoverAnimated:animated];
+    TT_RELEASE_SAFELY(_popoverController);
+  }
+
+  _popoverController = [[UIPopoverController alloc] initWithContentViewController:controller];
+  _popoverController.delegate = self;
+  if (nil != sourceButton) {
+    [_popoverController presentPopoverFromBarButtonItem: sourceButton
+                               permittedArrowDirections: UIPopoverArrowDirectionAny
+                                               animated: animated];
+
+  } else {
+    [_popoverController presentPopoverFromRect: sourceRect
+                                        inView: sourceView
+                      permittedArrowDirections: UIPopoverArrowDirectionAny
+                                      animated: animated];
   }
 }
 
@@ -275,8 +367,7 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
 - (BOOL)presentController: (UIViewController*)controller
          parentController: (UIViewController*)parentController
                      mode: (TTNavigationMode)mode
-                 animated: (BOOL)animated
-               transition: (NSInteger)transition {
+                   action: (TTURLAction*)action {
   BOOL didPresentNewController = YES;
 
   if (nil == _rootViewController) {
@@ -301,8 +392,7 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
       [self presentDependantController: controller
                       parentController: parentController
                                   mode: mode
-                              animated: animated
-                            transition: transition];
+                                action: action];
     }
   }
 
@@ -314,8 +404,7 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
 - (BOOL)presentController: (UIViewController*)controller
             parentURLPath: (NSString*)parentURLPath
               withPattern: (TTURLNavigatorPattern*)pattern
-                 animated: (BOOL)animated
-               transition: (NSInteger)transition {
+                   action: (TTURLAction*)action {
   BOOL didPresentNewController = NO;
 
   if (nil != controller) {
@@ -333,16 +422,14 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
         [self presentController: parentController
                parentController: nil
                            mode: TTNavigationModeNone
-                       animated: NO
-                     transition: 0];
+                         action: [TTURLAction actionWithURLPath:nil]];
       }
 
       didPresentNewController = [self
                                  presentController: controller
                                  parentController: parentController
                                  mode: pattern.navigationMode
-                                 animated: animated
-                                 transition: transition];
+                                 action: action];
     }
   }
   return didPresentNewController;
@@ -376,6 +463,7 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
   if (nil == theURL.scheme) {
     if (nil != theURL.fragment) {
       urlPath = [self.URL stringByAppendingString:urlPath];
+
     } else {
       urlPath = [@"http://" stringByAppendingString:urlPath];
     }
@@ -395,6 +483,7 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
     NSURL *newURL = [_delegate navigator:self URLToOpen:theURL];
     if (!newURL) {
       return nil;
+
     } else {
       theURL = newURL;
       urlPath = newURL.absoluteString;
@@ -425,12 +514,12 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
           inViewController: controller];
     }
 
+    action.transition = action.transition ? action.transition : pattern.transition;
+
     BOOL wasNew = [self presentController: controller
                             parentURLPath: action.parentURLPath
                               withPattern: pattern
-                                 animated: action.animated
-                               transition: action.transition ?
-                   action.transition : pattern.transition];
+                                   action: action];
 
     if (action.withDelay && !wasNew) {
       [self cancelDelay];
@@ -466,7 +555,7 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-- (void)applicationWillTerminateNotification:(void*)info {
+- (void)applicationWillLeaveForeground:(void *)ignored {
   if (_persistenceMode) {
     [self persistViewControllers];
   }
@@ -530,9 +619,11 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
     if (child) {
       if (child == _rootViewController) {
         return child;
+
       } else {
         controller = child;
       }
+
     } else {
       return controller;
     }
@@ -593,18 +684,22 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
       id result = [_URLMap dispatchURL:URL toTarget:controller query:query];
       if ([result isKindOfClass:[UIViewController class]]) {
         return result;
+
       } else {
         return controller;
       }
+
     } else {
       id object = [_URLMap objectForURL:baseURL query:nil pattern:pattern];
       if (object) {
         id result = [_URLMap dispatchURL:URL toTarget:object query:query];
         if ([result isKindOfClass:[UIViewController class]]) {
           return result;
+
         } else {
           return object;
         }
+
       } else {
         return nil;
       }
@@ -619,12 +714,14 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
     if (_delayCount) {
       if (!_delayedControllers) {
         _delayedControllers = [[NSMutableArray alloc] initWithObjects:controller,nil];
+
       } else {
         [_delayedControllers addObject:controller];
       }
     }
 
     return controller;
+
   } else {
     return nil;
   }
@@ -680,24 +777,50 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
 
   NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
   if (path.count) {
-    [defaults setObject:path forKey:kNavigatorHistoryKey];
-    [defaults setObject:[NSDate date] forKey:kNavigatorHistoryTimeKey];
-    [defaults setObject:[NSNumber numberWithInt:important] forKey:kNavigatorHistoryImportantKey];
+    NSDate* historyTime = [NSDate date];
+    NSNumber* historyImportant = [NSNumber numberWithInt:important];
+
+    if (TTIsStringWithAnyText(_persistenceKey)) {
+      NSDictionary* persistedValues = [NSDictionary dictionaryWithObjectsAndKeys:
+                                       path, kNavigatorHistoryKey,
+                                       historyTime, kNavigatorHistoryTimeKey,
+                                       historyImportant, kNavigatorHistoryImportantKey,
+                                       nil];
+      [defaults setObject:persistedValues forKey:_persistenceKey];
+
+    } else {
+      [defaults setObject:path forKey:kNavigatorHistoryKey];
+      [defaults setObject:historyTime forKey:kNavigatorHistoryTimeKey];
+      [defaults setObject:historyImportant forKey:kNavigatorHistoryImportantKey];
+    }
+
+    [defaults synchronize];
+
   } else {
-    [defaults removeObjectForKey:kNavigatorHistoryKey];
-    [defaults removeObjectForKey:kNavigatorHistoryTimeKey];
-    [defaults removeObjectForKey:kNavigatorHistoryImportantKey];
+    [self resetDefaults];
   }
-  [defaults synchronize];
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (UIViewController*)restoreViewControllers {
   NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-  NSDate* timestamp = [defaults objectForKey:kNavigatorHistoryTimeKey];
-  NSArray* path = [defaults objectForKey:kNavigatorHistoryKey];
-  BOOL important = [[defaults objectForKey:kNavigatorHistoryImportantKey] boolValue];
+  NSDate* timestamp = nil;
+  NSArray* path = nil;
+  BOOL important = NO;
+
+  if (TTIsStringWithAnyText(_persistenceKey)) {
+    NSDictionary* persistedValues = [defaults objectForKey:_persistenceKey];
+
+    timestamp = [persistedValues objectForKey:kNavigatorHistoryTimeKey];
+    path = [persistedValues objectForKey:kNavigatorHistoryKey];
+    important = [[persistedValues objectForKey:kNavigatorHistoryImportantKey] boolValue];
+
+  } else {
+    timestamp = [defaults objectForKey:kNavigatorHistoryTimeKey];
+    path = [defaults objectForKey:kNavigatorHistoryKey];
+    important = [[defaults objectForKey:kNavigatorHistoryImportantKey] boolValue];
+  }
   TTDCONDITIONLOG(TTDFLAG_NAVIGATOR, @"DEBUG RESTORE %@ FROM %@",
                   path, [timestamp formatRelativeTime]);
 
@@ -754,6 +877,7 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
   if (controller.modalViewController
       && controller.modalViewController.parentViewController == controller) {
     [self persistController:controller.modalViewController path:path];
+
   } else if (controller.popupViewController
              && controller.popupViewController.superController == controller) {
     [self persistController:controller.popupViewController path:path];
@@ -783,6 +907,7 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
     }
 
     return [paths componentsJoinedByString:@"/"];
+
   } else {
     return nil;
   }
@@ -803,11 +928,33 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)resetDefaults {
   NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-  [defaults removeObjectForKey:kNavigatorHistoryKey];
-  [defaults removeObjectForKey:kNavigatorHistoryTimeKey];
-  [defaults removeObjectForKey:kNavigatorHistoryImportantKey];
+
+  if (TTIsStringWithAnyText(_persistenceKey)) {
+    [defaults removeObjectForKey:_persistenceKey];
+
+  } else {
+    [defaults removeObjectForKey:kNavigatorHistoryKey];
+    [defaults removeObjectForKey:kNavigatorHistoryTimeKey];
+    [defaults removeObjectForKey:kNavigatorHistoryImportantKey];
+  }
+
   [defaults synchronize];
 }
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+#pragma mark -
+#pragma mark UIPopoverControllerDelegate
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+- (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController {
+  if (popoverController == _popoverController) {
+    TT_RELEASE_SAFELY(_popoverController);
+  }
+}
+
 
 
 @end
@@ -826,19 +973,25 @@ static NSString* kNavigatorHistoryImportantKey  = @"TTNavigatorHistoryImportant"
 - (void)presentDependantController: (UIViewController*)controller
                   parentController: (UIViewController*)parentController
                               mode: (TTNavigationMode)mode
-                          animated: (BOOL)animated
-                        transition: (NSInteger)transition {
+                            action: (TTURLAction*)action {
 
   if (mode == TTNavigationModeModal) {
     [self presentModalController: controller
                 parentController: parentController
-                        animated: animated
-                      transition: transition];
+                        animated: action.animated
+                      transition: action.transition];
+
+  } else if (mode == TTNavigationModePopover) {
+    [self presentPopoverController: controller
+                      sourceButton: action.sourceButton
+                        sourceView: action.sourceView
+                        sourceRect: action.sourceRect
+                          animated: action.animated];
 
   } else {
     [parentController addSubcontroller: controller
-                              animated: animated
-                            transition: transition];
+                              animated: action.animated
+                            transition: action.transition];
   }
 }
 

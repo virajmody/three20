@@ -1,5 +1,5 @@
 //
-// Copyright 2009-2010 Facebook
+// Copyright 2009-2011 Facebook
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@
 
 @class TTCSSStyleSheet;
 
+#define TTCSSBGCOLOR(selector)  [[TTDefaultCSSStyleSheet globalCSSStyleSheet] \
+                                  backgroundColorForCSSSelector:selector]
+
 @interface TTDefaultCSSStyleSheet : TTDefaultStyleSheet {
 @private
   TTCSSStyleSheet* _styleSheet;
@@ -26,5 +29,9 @@
 @property (nonatomic, readonly) TTCSSStyleSheet* styleSheet;
 
 - (BOOL)addStyleSheetFromDisk:(NSString*)filename;
+
+- (UIColor*)backgroundColorForCSSSelector:(NSString*)cssSelector;
+
++ (TTDefaultCSSStyleSheet*)globalCSSStyleSheet;
 
 @end

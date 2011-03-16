@@ -1,5 +1,5 @@
 //
-// Copyright 2009-2010 Facebook
+// Copyright 2009-2011 Facebook
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -65,6 +65,16 @@
   item.text = text;
   item.URL = URL;
   item.accessoryURL = accessoryURL;
+  return item;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
++ (id)itemWithText:(NSString*)text delegate:(id)delegate selector:(SEL)selector {
+  TTTableTextItem* item = [[[self alloc] init] autorelease];
+  item.text = text;
+  item.delegate = delegate;
+  item.selector = selector;
   return item;
 }
 

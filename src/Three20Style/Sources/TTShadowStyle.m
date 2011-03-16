@@ -1,5 +1,5 @@
 //
-// Copyright 2009-2010 Facebook
+// Copyright 2009-2011 Facebook
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 #import "Three20Style/TTShape.h"
 
 // Core
+#import "Three20Core/NSStringAdditions.h"
 #import "Three20Core/TTCorePreprocessorMacros.h"
 #import "Three20Core/TTGlobalCoreRects.h"
 
@@ -83,6 +84,7 @@
   if (_offset.width < 0) {
     inset.left += fabs(_offset.width) + blurSize*2;
     inset.right -= blurSize;
+
   } else if (_offset.width > 0) {
     inset.right += fabs(_offset.width) + blurSize*2;
     inset.left -= blurSize;
@@ -90,6 +92,7 @@
   if (_offset.height < 0) {
     inset.top += fabs(_offset.height) + blurSize*2;
     inset.bottom -= blurSize;
+
   } else if (_offset.height > 0) {
     inset.bottom += fabs(_offset.height) + blurSize*2;
     inset.top -= blurSize;
@@ -101,8 +104,17 @@
   CGContextRef ctx = UIGraphicsGetCurrentContext();
   CGContextSaveGState(ctx);
 
+  // Due to a bug in OS versions 3.2 and 4.0, the shadow appears upside-down. It pains me to
+  // write this, but a lot of research has failed to turn up a way to detect the flipped shadow
+  // programmatically
+  float shadowYOffset = -_offset.height;
+  NSString *osVersion = [UIDevice currentDevice].systemVersion;
+  if ([osVersion versionStringCompare:@"3.2"] != NSOrderedAscending) {
+    shadowYOffset = _offset.height;
+  }
+
   [context.shape addToPath:context.frame];
-  CGContextSetShadowWithColor(ctx, CGSizeMake(_offset.width, -_offset.height), _blur,
+  CGContextSetShadowWithColor(ctx, CGSizeMake(_offset.width, shadowYOffset), _blur,
                               _color.CGColor);
   CGContextBeginTransparencyLayer(ctx, nil);
   [self.next draw:context];
@@ -120,6 +132,7 @@
 
   if (_next) {
     return [self.next addToSize:size context:context];
+
   } else {
     return size;
   }

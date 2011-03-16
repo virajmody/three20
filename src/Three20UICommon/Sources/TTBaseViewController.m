@@ -1,5 +1,5 @@
 //
-// Copyright 2009-2010 Facebook
+// Copyright 2009-2011 Facebook
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
   if (self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil]) {
     _navigationBarStyle = UIBarStyleDefault;
-    _statusBarStyle = UIStatusBarStyleDefault;
+    _statusBarStyle = [[UIApplication sharedApplication] statusBarStyle];
   }
 
   return self;
@@ -91,28 +91,16 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)resizeForKeyboard:(NSNotification*)notification appearing:(BOOL)appearing {
-#if __IPHONE_3_2 && __IPHONE_3_2 <= __IPHONE_OS_VERSION_MAX_ALLOWED
-  CGRect keyboardStart;
-  [[notification.userInfo objectForKey:UIKeyboardFrameBeginUserInfoKey] getValue:&keyboardStart];
+	CGRect keyboardBounds;
+	[[notification.userInfo objectForKey:UIKeyboardBoundsUserInfoKey] getValue:&keyboardBounds];
 
-  CGRect keyboardEnd;
-  [[notification.userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] getValue:&keyboardEnd];
+	CGPoint keyboardStart;
+	[[notification.userInfo objectForKey:UIKeyboardCenterBeginUserInfoKey] getValue:&keyboardStart];
 
-  CGRect keyboardBounds = CGRectMake(0, 0, keyboardEnd.size.width, keyboardEnd.size.height);
+	CGPoint keyboardEnd;
+	[[notification.userInfo objectForKey:UIKeyboardCenterEndUserInfoKey] getValue:&keyboardEnd];
 
-  BOOL animated = keyboardStart.origin.y != keyboardEnd.origin.y;
-#else
-  CGRect keyboardBounds;
-  [[notification.userInfo objectForKey:UIKeyboardBoundsUserInfoKey] getValue:&keyboardBounds];
-
-  CGPoint keyboardStart;
-  [[notification.userInfo objectForKey:UIKeyboardCenterBeginUserInfoKey] getValue:&keyboardStart];
-
-  CGPoint keyboardEnd;
-  [[notification.userInfo objectForKey:UIKeyboardCenterEndUserInfoKey] getValue:&keyboardEnd];
-
-  BOOL animated = keyboardStart.y != keyboardEnd.y;
-#endif
+	BOOL animated = keyboardStart.y != keyboardEnd.y;
   if (animated) {
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:TT_TRANSITION_DURATION];
@@ -120,6 +108,7 @@
 
   if (appearing) {
     [self keyboardWillAppear:animated withBounds:keyboardBounds];
+
   } else {
     [self keyboardDidDisappear:animated withBounds:keyboardBounds];
   }
@@ -166,7 +155,10 @@
     UINavigationBar* bar = self.navigationController.navigationBar;
     bar.tintColor = _navigationBarTintColor;
     bar.barStyle = _navigationBarStyle;
-    [[UIApplication sharedApplication] setStatusBarStyle:_statusBarStyle animated:YES];
+
+    if (!TTIsPad()) {
+      [[UIApplication sharedApplication] setStatusBarStyle:_statusBarStyle animated:YES];
+    }
   }
 }
 
@@ -204,6 +196,7 @@
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
   if (TTIsPad()) {
     return YES;
+
   } else {
     UIViewController* popup = [self popupViewController];
     if (popup) {
@@ -287,7 +280,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)keyboardDidShow:(NSNotification*)notification {
-#if __IPHONE_3_2 && __IPHONE_3_2 <= __IPHONE_OS_VERSION_MAX_ALLOWED
+#ifdef __IPHONE_3_21
   CGRect frameStart;
   [[notification.userInfo objectForKey:UIKeyboardFrameBeginUserInfoKey] getValue:&frameStart];
 
@@ -311,7 +304,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)keyboardWillHide:(NSNotification*)notification {
-#if __IPHONE_3_2 && __IPHONE_3_2 <= __IPHONE_OS_VERSION_MAX_ALLOWED
+#ifdef __IPHONE_3_21
   CGRect frameEnd;
   [[notification.userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] getValue:&frameEnd];
 

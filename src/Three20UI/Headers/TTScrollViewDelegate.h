@@ -1,5 +1,5 @@
 //
-// Copyright 2009-2010 Facebook
+// Copyright 2009-2011 Facebook
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@
 - (void)scrollViewWillBeginDragging:(TTScrollView*)scrollView;
 
 - (void)scrollViewDidEndDragging:(TTScrollView*)scrollView willDecelerate:(BOOL)willDecelerate;
+
+- (void)scrollViewWillBeginDecelerating:(TTScrollView*)scrollView;
 
 - (void)scrollViewDidEndDecelerating:(TTScrollView*)scrollView;
 

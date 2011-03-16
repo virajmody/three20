@@ -1,5 +1,5 @@
 //
-// Copyright 2009-2010 Facebook
+// Copyright 2009-2011 Facebook
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-- (id)init {
-  if (self = [self initWithNibName:nil bundle:nil]) {
+-(id)initWithNibName:(NSString *)nibName bundle:(NSBundle *)bundle {
+  if (self = [super initWithNibName:nibName bundle:bundle]) {
     self.title = @"Three20 NIB Demo";
     self.navigationItem.backBarButtonItem =
     [[[UIBarButtonItem alloc] initWithTitle: @"Root"

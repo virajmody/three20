@@ -1,5 +1,5 @@
 //
-// Copyright 2009-2010 Facebook
+// Copyright 2009-2011 Facebook
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@
 @class TTButton;
 @class TTStyle;
 
+@protocol TTImageViewDelegate;
+
 @interface TTButtonContent : NSObject <TTURLRequestDelegate> {
   TTButton*     _button;
   NSString*     _title;
@@ -29,12 +31,15 @@
   UIImage*      _image;
   TTStyle*      _style;
   TTURLRequest* _request;
+
+  id<TTImageViewDelegate> _delegate;
 }
 
 @property (nonatomic, copy)   NSString* title;
 @property (nonatomic, copy)   NSString* imageURL;
 @property (nonatomic, retain) UIImage*  image;
 @property (nonatomic, retain) TTStyle*  style;
+@property (nonatomic, assign) id<TTImageViewDelegate> delegate;
 
 - (id)initWithButton:(TTButton*)button;
 

@@ -1,5 +1,5 @@
 //
-// Copyright 2009-2010 Facebook
+// Copyright 2009-2011 Facebook
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,11 +18,18 @@
 #import "Three20UI/TTTableItem.h"
 
 @interface TTTableLinkedItem : TTTableItem {
+  // If a URL is specified, TTNavigator will be used. Otherwise, the delegate+selector will
+  // be invoked.
   NSString* _URL;
   NSString* _accessoryURL;
+
+  id        _delegate;
+  SEL       _selector;
 }
 
-@property (nonatomic, copy) NSString* URL;
-@property (nonatomic, copy) NSString* accessoryURL;
+@property (nonatomic, copy) 	NSString* URL;
+@property (nonatomic, copy)   NSString* accessoryURL;
+@property (nonatomic, assign) id        delegate;
+@property (nonatomic, assign) SEL       selector;
 
 @end
