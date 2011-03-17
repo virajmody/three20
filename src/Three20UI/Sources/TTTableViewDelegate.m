@@ -135,7 +135,6 @@
       }
       else {
         TTOpenURLFromView(item.URL, tableView);
-        TTOpenURL(item.URL);
       }
 
     } else if (item.delegate && item.selector) {
