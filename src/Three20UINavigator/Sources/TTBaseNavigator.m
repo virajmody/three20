@@ -101,7 +101,7 @@ __attribute__((weak_import));
   _delegate = nil;
   TT_RELEASE_SAFELY(_window);
   TT_RELEASE_SAFELY(_rootViewController);
-  TT_RELEASE_SAFELY(_popoverController);
+  //TT_RELEASE_SAFELY(_popoverController);
   TT_RELEASE_SAFELY(_delayedControllers);
   TT_RELEASE_SAFELY(_URLMap);
   TT_RELEASE_SAFELY(_persistenceKey);
@@ -280,6 +280,15 @@ __attribute__((weak_import));
 
     } else {
       UIViewController* parent = self.topViewController;
+      if ([parent isKindOfClass:UINavigationController.class] ) {
+        if (parent.parentViewController != nil) {
+          parent = parent.parentViewController;
+        }
+        if ([parent isKindOfClass:UITabBarController.class]) {
+          parent = [(UITabBarController*)parent moreNavigationController];
+        }
+      }
+
       if (parent != controller) {
         return parent;
 
@@ -325,36 +334,36 @@ __attribute__((weak_import));
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-- (void)presentPopoverController: (UIViewController*)controller
-                    sourceButton: (UIBarButtonItem*)sourceButton
-                      sourceView: (UIView*)sourceView
-                      sourceRect: (CGRect)sourceRect
-                        animated: (BOOL)animated {
-  TTDASSERT(nil != sourceButton || nil != sourceView);
-
-  if (nil == sourceButton && nil == sourceView) {
-    return;
-  }
-
-  if (nil != _popoverController) {
-    [_popoverController dismissPopoverAnimated:animated];
-    TT_RELEASE_SAFELY(_popoverController);
-  }
-
-  _popoverController = [[UIPopoverController alloc] initWithContentViewController:controller];
-  _popoverController.delegate = self;
-  if (nil != sourceButton) {
-    [_popoverController presentPopoverFromBarButtonItem: sourceButton
-                               permittedArrowDirections: UIPopoverArrowDirectionAny
-                                               animated: animated];
-
-  } else {
-    [_popoverController presentPopoverFromRect: sourceRect
-                                        inView: sourceView
-                      permittedArrowDirections: UIPopoverArrowDirectionAny
-                                      animated: animated];
-  }
-}
+//- (void)presentPopoverController: (UIViewController*)controller
+//                    sourceButton: (UIBarButtonItem*)sourceButton
+//                      sourceView: (UIView*)sourceView
+//                      sourceRect: (CGRect)sourceRect
+//                        animated: (BOOL)animated {
+//  TTDASSERT(nil != sourceButton || nil != sourceView);
+//
+//  if (nil == sourceButton && nil == sourceView) {
+//    return;
+//  }
+//
+//  if (nil != _popoverController) {
+//    [_popoverController dismissPopoverAnimated:animated];
+//    TT_RELEASE_SAFELY(_popoverController);
+//  }
+//
+//  _popoverController = [[UIPopoverController alloc] initWithContentViewController:controller];
+//  _popoverController.delegate = self;
+//  if (nil != sourceButton) {
+//    [_popoverController presentPopoverFromBarButtonItem: sourceButton
+//                               permittedArrowDirections: UIPopoverArrowDirectionAny
+//                                               animated: animated];
+//
+//  } else {
+//    [_popoverController presentPopoverFromRect: sourceRect
+//                                        inView: sourceView
+//                      permittedArrowDirections: UIPopoverArrowDirectionAny
+//                                      animated: animated];
+//  }
+//}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -949,11 +958,11 @@ __attribute__((weak_import));
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-- (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController {
-  if (popoverController == _popoverController) {
-    TT_RELEASE_SAFELY(_popoverController);
-  }
-}
+//- (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController {
+//  if (popoverController == _popoverController) {
+//    TT_RELEASE_SAFELY(_popoverController);
+//  }
+//}
 
 
 
@@ -980,13 +989,6 @@ __attribute__((weak_import));
                 parentController: parentController
                         animated: action.animated
                       transition: action.transition];
-
-  } else if (mode == TTNavigationModePopover) {
-    [self presentPopoverController: controller
-                      sourceButton: action.sourceButton
-                        sourceView: action.sourceView
-                        sourceRect: action.sourceRect
-                          animated: action.animated];
 
   } else {
     [parentController addSubcontroller: controller

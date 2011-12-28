@@ -140,7 +140,7 @@
     _tableOverlayView = [[UIView alloc] initWithFrame:frame];
     _tableOverlayView.autoresizesSubviews = YES;
     _tableOverlayView.autoresizingMask = UIViewAutoresizingFlexibleWidth
-    | UIViewAutoresizingFlexibleBottomMargin;
+    | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleHeight;
     NSInteger tableIndex = [_tableView.superview.subviews indexOfObject:_tableView];
     if (tableIndex != NSNotFound) {
       [_tableView.superview addSubview:_tableOverlayView];
@@ -214,6 +214,12 @@
   [menuView removeFromSuperview];
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+- (void)showMenuAnimationDidStop:(NSString*)animationID finished:(NSNumber*)finished
+                         context:(void*)context {
+  if (_menuCell == nil || _menuView == nil || !finished) return;
+  [_menuCell.contentView addSubview:_menuView];
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -831,29 +837,34 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)showMenu:(UIView*)view forCell:(UITableViewCell*)cell animated:(BOOL)animated {
-  [self hideMenu:YES];
+  [self hideMenu:NO];
 
   _menuView = [view retain];
   _menuCell = [cell retain];
 
   // Insert the cell below all content subviews
-  [_menuCell.contentView insertSubview:_menuView atIndex:0];
+//  [_menuCell.contentView insertSubview:_menuView atIndex:0];
 
   if (animated) {
-    [UIView beginAnimations:nil context:nil];
+    [UIView beginAnimations:nil context:_menuCell];
     [UIView setAnimationDuration:TT_FAST_TRANSITION_DURATION];
     [UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
+    [UIView setAnimationDelegate:self];
+    [UIView setAnimationDidStopSelector:@selector(showMenuAnimationDidStop:finished:context:)];
   }
 
   // Move each content subview down, revealing the menu
   for (UIView* subview in _menuCell.contentView.subviews) {
     if (subview != _menuView) {
-      subview.left -= _menuCell.contentView.width;
+      subview.left += _menuCell.contentView.width;
     }
   }
 
   if (animated) {
     [UIView commitAnimations];
+  }
+  else {
+    [_menuCell.contentView addSubview:_menuView];
   }
 }
 
@@ -868,10 +879,15 @@
       [UIView setAnimationDidStopSelector:@selector(hideMenuAnimationDidStop:finished:context:)];
     }
 
+    float width = _menuCell.contentView.width;
     for (UIView* view in _menuCell.contentView.subviews) {
-      if (view != _menuView) {
-        view.left += _menuCell.contentView.width;
+      if (view != _menuView && view.left >= width ) {
+        view.left -= width;
       }
+    }
+
+    if (_menuCell.accessoryView) {
+      _menuCell.accessoryView.hidden = NO;
     }
 
     if (animated) {
@@ -917,7 +933,16 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (CGRect)rectForOverlayView {
-  return [_tableView frameWithKeyboardSubtracted:0];
+  CGRect frame = [_tableView frameWithKeyboardSubtracted:0];
+  if (self.tableView && self.tableView.tableHeaderView) {
+      float headerHeight = self.tableView.tableHeaderView.height;
+      frame = CGRectMake(frame.origin.x,
+                         frame.origin.y + headerHeight,
+                         frame.size.width,
+                         frame.size.height - headerHeight);
+  }
+
+  return frame;
 }
 
 

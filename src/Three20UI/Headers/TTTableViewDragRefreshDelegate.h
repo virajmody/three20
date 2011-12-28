@@ -33,7 +33,7 @@
 /**
  * Pulled from the uprise78/three20-P31 fork with consent of uprise78.
  */
-@interface TTTableViewDragRefreshDelegate : TTTableViewVarHeightDelegate {
+@interface TTTableViewDragRefreshDelegate : TTTableViewDelegate {
   TTTableHeaderDragRefreshView* _headerView;
   id<TTModel>                   _model;
 }

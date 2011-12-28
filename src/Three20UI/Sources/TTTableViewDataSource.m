@@ -32,6 +32,7 @@
 #import "Three20UI/TTTableTextItem.h"
 #import "Three20UI/TTTableActivityItem.h"
 #import "Three20UI/TTTableControlItem.h"
+#import "Three20UI/TTTableViewItem.h"
 
 // - Table Cells
 #import "Three20UI/TTTableMoreButtonCell.h"
@@ -278,6 +279,9 @@
 
     } else if ([object isKindOfClass:[TTTableControlItem class]]) {
       return [TTTableControlCell class];
+
+    } else if ([object isKindOfClass:[TTTableViewItem class]]) {
+      return [TTTableFlushViewCell class];
 
     } else {
       return [TTTableTextItemCell class];

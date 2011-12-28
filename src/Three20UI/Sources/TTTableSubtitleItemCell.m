@@ -91,7 +91,7 @@
 #pragma mark -
 #pragma mark UIView
 
-
+static int kImagePadding = 2;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)layoutSubviews {
   [super layoutSubviews];
@@ -100,10 +100,11 @@
   CGFloat width = self.contentView.width - (height + kTableCellSmallMargin);
   CGFloat left = 0;
 
-  int imageXOffset = [self isEditing] ? 7.0 : 0.0;
+  int imageXOffset = [self isEditing] ? 7.0 : kImagePadding;
 
   if (_imageView2) {
-    _imageView2.frame = CGRectMake(imageXOffset, 0, height, height);
+    _imageView2.frame = CGRectMake(imageXOffset, kImagePadding,
+                                   height - kImagePadding*2, height - kImagePadding*2);
     left = _imageView2.right + kTableCellSmallMargin;
 
   } else {
