@@ -38,10 +38,12 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString*)identifier {
-  if (self = [super initWithStyle:UITableViewCellStyleValue2 reuseIdentifier:identifier]) {
+	self = [super initWithStyle:UITableViewCellStyleValue2 reuseIdentifier:identifier];
+  if (self) {
     self.textLabel.font = TTSTYLEVAR(tableFont);
     self.textLabel.textColor = TTSTYLEVAR(textColor);
     self.textLabel.highlightedTextColor = TTSTYLEVAR(highlightedTextColor);
+	self.textLabel.backgroundColor = TTSTYLEVAR(backgroundTextColor);
     self.textLabel.textAlignment = UITextAlignmentLeft;
     self.textLabel.lineBreakMode = UILineBreakModeTailTruncation;
     self.textLabel.adjustsFontSizeToFitWidth = NO;
@@ -49,6 +51,7 @@
     self.detailTextLabel.font = TTSTYLEVAR(font);
     self.detailTextLabel.textColor = TTSTYLEVAR(tableSubTextColor);
     self.detailTextLabel.highlightedTextColor = TTSTYLEVAR(highlightedTextColor);
+	self.detailTextLabel.backgroundColor = TTSTYLEVAR(backgroundTextColor);
     self.detailTextLabel.textAlignment = UITextAlignmentLeft;
     self.detailTextLabel.contentMode = UIViewContentModeTop;
     self.detailTextLabel.lineBreakMode = UILineBreakModeTailTruncation;
@@ -91,6 +94,12 @@
 #pragma mark -
 #pragma mark UIView
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+- (void)prepareForReuse {
+    [super prepareForReuse];
+    [_imageView2 unsetImage];
+}
+
 static int kImagePadding = 2;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)layoutSubviews {
@@ -98,7 +107,7 @@ static int kImagePadding = 2;
 
   CGFloat height = self.contentView.height;
   CGFloat width = self.contentView.width - (height + kTableCellSmallMargin);
-  CGFloat left = 0;
+  CGFloat left = 0.0f;
 
   int imageXOffset = [self isEditing] ? 7.0 : kImagePadding;
 
