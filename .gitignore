@@ -19,3 +19,5 @@ src/Three20UI/*.h
 extensions/
 
 *.pyc
+
+copyFromSVN
