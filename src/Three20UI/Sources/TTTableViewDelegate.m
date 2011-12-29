@@ -43,6 +43,9 @@
 // Core
 #import "Three20Core/TTCorePreprocessorMacros.h"
 
+// Navigation
+#import "Three20UINavigator/TTURLAction.h"
+
 static const CGFloat kEmptyHeaderHeight = 0.0f;
 static const CGFloat kSectionHeaderHeight = 22.0f;
 static const CGFloat kGroupedSectionHeaderHeight = 36.0f;

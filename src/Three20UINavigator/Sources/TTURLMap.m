@@ -323,25 +323,26 @@
 }
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-- (void)from:(NSString*)URL toPopoverViewController:(id)target {
-  TTURLNavigatorPattern* pattern =
-    [[TTURLNavigatorPattern alloc] initWithTarget: target
-                                             mode: TTNavigationModePopover];
-  [self addObjectPattern:pattern forURL:URL];
-  [pattern release];
-}
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//- (void)from:(NSString*)URL toPopoverViewController:(id)target {
+//  TTURLNavigatorPattern* pattern =
+//    [[TTURLNavigatorPattern alloc] initWithTarget: target
+//                                             mode: TTNavigationModePopover];
+//  [self addObjectPattern:pattern forURL:URL];
+//  [pattern release];
+//}
+//
+//
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-- (void)from:(NSString*)URL toPopoverViewController:(id)target selector:(SEL)selector {
-  TTURLNavigatorPattern* pattern =
-    [[TTURLNavigatorPattern alloc] initWithTarget:target
-                                             mode:TTNavigationModePopover];
-  pattern.selector = selector;
-  [self addObjectPattern:pattern forURL:URL];
-  [pattern release];
-}
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//- (void)from:(NSString*)URL toPopoverViewController:(id)target selector:(SEL)selector {
+//  TTURLNavigatorPattern* pattern =
+//    [[TTURLNavigatorPattern alloc] initWithTarget:target
+//                                             mode:TTNavigationModePopover];
+//  pattern.selector = selector;
+//  [self addObjectPattern:pattern forURL:URL];
+//  [pattern release];
+//}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
