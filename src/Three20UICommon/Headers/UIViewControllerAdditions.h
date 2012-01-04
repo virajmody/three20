@@ -150,6 +150,11 @@
 - (void)dismissModalViewController;
 
 /**
+ * Shortcut for its animated-optional cousin.
+ */
+- (void)dismissModalViewControllerUnAnimated;
+
+/**
  * Forcefully initiates garbage collection. You may call this in your didReceiveMemoryWarning
  * message if you are worried about garbage collection memory consumption.
  *

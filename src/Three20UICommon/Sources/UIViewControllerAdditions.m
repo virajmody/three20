@@ -329,7 +329,23 @@ TT_FIX_CATEGORY_BUG(UIViewControllerAdditions)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)dismissModalViewController {
-  [self dismissModalViewControllerAnimated:YES];
+  if ([self respondsToSelector:@selector(presentingViewController)]) {
+    [[self presentingViewController] dismissModalViewControllerAnimated:YES];
+  }
+  else {
+    [self dismissModalViewControllerAnimated:YES];
+  }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+- (void)dismissModalViewControllerUnAnimated {
+  if ([self respondsToSelector:@selector(presentingViewController)]) {
+    [[self presentingViewController] dismissModalViewControllerAnimated:NO];
+  }
+  else {
+    [self dismissModalViewControllerAnimated:NO];
+  }
 }
 
 
