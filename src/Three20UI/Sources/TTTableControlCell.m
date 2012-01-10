@@ -172,6 +172,7 @@ static const CGFloat kControlPadding = 8.0f;
     // XXXjoe For some reason I need to re-add the control as a subview or else
     // the re-use of the cell will cause the control to fail to paint itself on occasion
     [self.contentView addSubview:_control];
+    [self.contentView bringSubviewToFront:_control];
     _control.frame = CGRectMake(minX, floor(self.contentView.height/2 - _control.height/2),
                                 contentWidth, _control.height);
   }
